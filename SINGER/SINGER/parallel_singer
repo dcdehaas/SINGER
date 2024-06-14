@@ -9,29 +9,33 @@ import shlex
 def index_vcf(vcf_prefix, block_length):
     """Index the VCF file using the index_vcf.py script."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    indexer = os.path.join(script_dir, "index_vcf.py")    
+    indexer = os.path.join(script_dir, "index_vcf.py")
     print(f"Indexing VCF file: {vcf_prefix}.vcf with block length: {block_length}")
     subprocess.run(["python", indexer, vcf_prefix, str(block_length)])
 
 
-def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, block_length, num_iters, thinning_interval, Ne, polar, num_cores):
+def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, block_length, num_iters, thinning_interval, Ne, polar, num_cores, seed):
     """Run singer in parallel using the specified parameters."""
-    
+
     # Read the breakpoints from the index file
     with open(f"{vcf_prefix}.index", 'r') as f:
         breakpoints = [int(line.split()[0]) for line in f.readlines()]
-    
+
     script_dir = os.path.dirname(os.path.realpath(__file__))
     singer_master_executable = os.path.join(script_dir, "singer_master")
-    
+
     # Prepare the singer commands
     cmd_list = []
     for i in range(len(breakpoints)):
         start = breakpoints[i]
-        
+
         # Base command
         cmd = f"{singer_master_executable} -Ne {Ne} -m {mutation_rate} -ratio {ratio} -vcf {vcf_prefix} -output {output_prefix}_{i}_{i+1} -start {start} -end {start + block_length} -n {num_iters} -thin {thinning_interval} -polar {polar}"
-        
+        # Use seed if specified, otherwise let singer_master choose its own seed. Note: a different seed for each iteration is still deterministic
+        # but using a different one per segment may help differentiate the ARGs between the different segments
+        if seed is not None:
+            cmd += f" -seed {seed+i}"
+
         cmd_list.append(cmd)
 
     # Execute the commands in parallel
@@ -57,8 +61,9 @@ def main():
     parser.add_argument("-thin", type=int, required=True, help="Thinning interval length.")
     parser.add_argument("-polar", type=float, default=0.5, required=False, help="Site flip probability. Default: 0.5.")
     parser.add_argument("-freq", type=float, default=1, required=False, help="Convert to tskit every {freq} samples. Default: 1.")
-    parser.add_argument("-num_cores", type=int, default=20, required=False, help="Number of cores. Default: 20.")    
-        
+    parser.add_argument("-num_cores", type=int, default=20, required=False, help="Number of cores. Default: 20.")
+    parser.add_argument("-seed", type=int, default=None, required=False, help="Random seed. Default is to use singer_master's default.")
+
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -76,10 +81,11 @@ def main():
     print(f"Thinning interval length: {args.thin}")
     print(f"Site flip probability: {args.polar}")
     print(f"Tskit conversion freq: {args.freq}")
-    print(f"Number of cores: {args.num_cores}") 
+    print(f"Number of cores: {args.num_cores}")
+    print(f"Seed: {args.seed if args.seed is not None else 'unspecified'}")
 
     index_vcf(args.vcf, args.L)
-    run_singer_in_parallel(args.vcf, args.output, args.m, args.ratio, args.L, args.n, args.thin, args.Ne, args.polar, args.num_cores)
+    run_singer_in_parallel(args.vcf, args.output, args.m, args.ratio, args.L, args.n, args.thin, args.Ne, args.polar, args.num_cores, args.seed)
     convert_long_ARG(args.vcf, args.output, args.n, args.freq)
 
 if __name__ == "__main__":
