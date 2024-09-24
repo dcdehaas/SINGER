@@ -30,11 +30,13 @@ def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, bloc
         start = breakpoints[i]
 
         # Base command
-        cmd = f"{singer_master_executable} -Ne {Ne} -m {mutation_rate} -ratio {ratio} -vcf {vcf_prefix} -output {output_prefix}_{i}_{i+1} -start {start} -end {start + block_length} -n {num_iters} -thin {thinning_interval} -polar {polar}"
+        cmd = f"{singer_master_executable} -m {mutation_rate} -ratio {ratio} -vcf {vcf_prefix} -output {output_prefix}_{i}_{i+1} -start {start} -end {start + block_length} -n {num_iters} -thin {thinning_interval} -polar {polar}"
         # Use seed if specified, otherwise let singer_master choose its own seed. Note: a different seed for each iteration is still deterministic
         # but using a different one per segment may help differentiate the ARGs between the different segments
         if seed is not None:
             cmd += f" -seed {seed+i}"
+        if Ne is not None:
+            cmd += f" -Ne {Ne}"
 
         cmd_list.append(cmd)
 
@@ -51,7 +53,7 @@ def convert_long_ARG(vcf_prefix, output_prefix, num_iters, freq):
 
 def main():
     parser = argparse.ArgumentParser(description="Parallelize singer runs by cutting the chromosome")
-    parser.add_argument('-Ne', type=float, required=True, help='Effective population size. Default: 1e4.')
+    parser.add_argument('-Ne', type=float, required=False, help='Effective population size. Default: auto-calculated.')
     parser.add_argument("-m", type=float, required=True, help="Mutation rate.")
     parser.add_argument("-ratio", type=float, default=1, help="Recombination to mutation ratio. Default: 1.")
     parser.add_argument("-L", type=int, default=int(1e6), help="Block length. Default: 1e6.")
@@ -71,7 +73,7 @@ def main():
     args = parser.parse_args()
 
     print("Parameters:")
-    print(f"Effective population size: {args.Ne}")
+    print(f"Effective population size: {args.Ne if args.Ne is not None else 'auto'}")
     print(f"Mutation rate: {args.m}")
     print(f"Recombination to mutation ratio: {args.ratio}")
     print(f"Block length: {args.L}")
