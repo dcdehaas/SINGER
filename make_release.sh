@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ev
 
-VER=0.1.7
+VER=0.1.8
 REL_DIR=releases/singer-${VER}-beta-linux-x86_64
 
 cp build/singer ${REL_DIR}
