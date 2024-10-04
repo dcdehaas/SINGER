@@ -14,7 +14,7 @@ def index_vcf(vcf_prefix, block_length):
     subprocess.run(["python", indexer, vcf_prefix, str(block_length)])
 
 
-def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, block_length, num_iters, thinning_interval, Ne, polar, num_cores, seed, recomb_map):
+def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, block_length, num_iters, thinning_interval, Ne, polar, num_cores, seed, recomb_map, mut_map):
     """Run singer in parallel using the specified parameters."""
 
     # Read the breakpoints from the index file
@@ -30,7 +30,7 @@ def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, bloc
         start = breakpoints[i]
 
         # Base command
-        cmd = f"{singer_master_executable} -m {mutation_rate} -ratio {ratio} -vcf {vcf_prefix} -output {output_prefix}_{i}_{i+1} -start {start} -end {start + block_length} -n {num_iters} -thin {thinning_interval} -polar {polar}"
+        cmd = f"{singer_master_executable} -ratio {ratio} -vcf {vcf_prefix} -output {output_prefix}_{i}_{i+1} -start {start} -end {start + block_length} -n {num_iters} -thin {thinning_interval} -polar {polar}"
         # Use seed if specified, otherwise let singer_master choose its own seed. Note: a different seed for each iteration is still deterministic
         # but using a different one per segment may help differentiate the ARGs between the different segments
         if seed is not None:
@@ -39,6 +39,10 @@ def run_singer_in_parallel(vcf_prefix, output_prefix, mutation_rate, ratio, bloc
             cmd += f" -Ne {Ne}"
         if recomb_map:
             cmd += f" -recomb_map \"{recomb_map}\""
+        if mut_map is not None:
+            cmd += f" -mut_map {mut_map}"
+        else:
+            cmd += f" -m {mutation_rate}"
 
         cmd_list.append(cmd)
 
@@ -56,7 +60,8 @@ def convert_long_ARG(vcf_prefix, output_prefix, num_iters, freq):
 def main():
     parser = argparse.ArgumentParser(description="Parallelize singer runs by cutting the chromosome")
     parser.add_argument('-Ne', type=float, required=False, help='Effective population size. Default: auto-calculated.')
-    parser.add_argument("-m", type=float, required=True, help="Mutation rate.")
+    parser.add_argument("-m", type=float, required=False, help="Mutation rate.")
+    parser.add_argument('-mut_map', type=str, help='Filename for the mutation rate map.')
     parser.add_argument("-ratio", type=float, default=1, help="Recombination to mutation ratio. Default: 1.")
     parser.add_argument("-L", type=int, default=int(1e6), help="Block length. Default: 1e6.")
     parser.add_argument("-vcf", type=str, required=True, help="VCF file prefix (without .vcf or .vcf.gz extension).")
@@ -78,6 +83,7 @@ def main():
     print("Parameters:")
     print(f"Effective population size: {args.Ne if args.Ne is not None else 'auto'}")
     print(f"Mutation rate: {args.m}")
+    print(f"Mutation map: {args.mut_map}")
     print(f"Recombination to mutation ratio: {args.ratio}")
     print(f"Block length: {args.L}")
     print(f"VCF file prefix: {args.vcf}")
@@ -90,7 +96,7 @@ def main():
     print(f"Seed: {args.seed if args.seed is not None else 'unspecified'}")
 
     index_vcf(args.vcf, args.L)
-    run_singer_in_parallel(args.vcf, args.output, args.m, args.ratio, args.L, args.n, args.thin, args.Ne, args.polar, args.num_cores, args.seed, args.recomb_map)
+    run_singer_in_parallel(args.vcf, args.output, args.m, args.ratio, args.L, args.n, args.thin, args.Ne, args.polar, args.num_cores, args.seed, args.recomb_map, args.mut_map)
     convert_long_ARG(args.vcf, args.output, args.n, args.freq)
 
 if __name__ == "__main__":

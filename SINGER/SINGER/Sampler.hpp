@@ -38,6 +38,7 @@ public:
     int num_samples = 0;
     ARG arg;
     bool fast_mode = false;
+    bool has_map = false;
     double bsp_c = 0.01;
     double tsp_q = 0.05;
     int random_seed = 0;
