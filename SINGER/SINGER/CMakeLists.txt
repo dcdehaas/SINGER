@@ -3,7 +3,7 @@ set(SINGER_SOURCES
     ARG.cpp BSP.cpp BSP_smc.cpp Binary_emission.cpp Branch.cpp
     Coalescent_calculator.cpp Emission.cpp Fitch_reconstruction.cpp
     Interval.cpp Node.cpp Normalizer.cpp Polar_emission.cpp Pruner.cpp
-    RSP_smc.cpp Recombination.cpp Reconstruction.cpp Sampler.cpp Scaler.cpp
+    Rate_map.cpp RSP_smc.cpp Recombination.cpp Reconstruction.cpp Sampler.cpp Scaler.cpp
     TSP.cpp TSP_smc.cpp Test.cpp Threader.cpp Threader_smc.cpp
     Trace_pruner.cpp Tree.cpp approx_BSP.cpp approx_coalescent_calculator.cpp
     fast_BSP.cpp fast_BSP_smc.cpp fast_coalescent_calculator.cpp main.cpp
