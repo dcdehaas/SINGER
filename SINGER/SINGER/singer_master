@@ -158,7 +158,7 @@ def compute_Ne(vcf_prefix, start, end, m):
     Ne = diversity/4/m
     return Ne 
 
-def run_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = True):
+def run_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = False):
     random.seed(seed)
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -178,7 +178,7 @@ def run_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, 
             sys.exit(1)
     return process.returncode
 
-def resume_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = True):
+def resume_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = False):
     random.seed(seed)
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -198,7 +198,7 @@ def resume_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iter
             sys.exit(1)
     return process.returncode
 
-def run_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = True):
+def run_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = False):
     random.seed(seed)
    
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -218,7 +218,7 @@ def run_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_pr
             sys.exit(1)
     return process.returncode
 
-def resume_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures=True):
+def resume_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = False):
     random.seed(seed)
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
