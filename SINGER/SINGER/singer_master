@@ -158,112 +158,86 @@ def compute_Ne(vcf_prefix, start, end, m):
     Ne = diversity/4/m
     return Ne 
 
-def run_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed):
-    attempts = 0
-    max_attempts = 100
+def run_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = True):
     random.seed(seed)
-    random_seeds = [random.randint(0, 2**30 - 1) for _ in range(max_attempts)]
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     singer_executable = os.path.join(script_dir, "singer")
 
     start_cmd = f"{singer_executable} -Ne {Ne} -m {m} -r {r} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin}"
-    debug_cmd = f"{singer_executable} -Ne {Ne} -m {m} -r {r} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin} -debug"
 
     seeded_start_cmd = start_cmd + f" -seed {seed}"
     print(seeded_start_cmd)
     process = subprocess.run(seeded_start_cmd.split(), check=False)
-    while process.returncode != 0 and attempts < max_attempts:
-        print(f"Auto-debug iteration: {attempts}")
-        seeded_debug_cmd = debug_cmd + f" -seed {random_seeds[attempts]}"
-        print(seeded_debug_cmd)
-        process = subprocess.run(seeded_debug_cmd.split(), check=False)
-        attempts += 1
+    if process.returncode != 0:
+        print(f"Singer returned code {process.returncode}", file=sys.stderr)
+        if skip_failures:
+            print(f"Ignoring failure and returning with partial/no output", file=sys.stderr)
+        else:
+            print(f"Exiting with failure...", file=sys.stderr)
+            sys.exit(1)
+    return process.returncode
 
-    if attempts == max_attempts:
-        print("Auto-debug failed. Contact the author for help: yun_deng@berkeley.edu")
-        sys.exit(1)
-
-def resume_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed):
-    attempts = 0
-    max_attempts = 100
+def resume_rate_singer(Ne, m, r, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = True):
     random.seed(seed)
-    random_seeds = [random.randint(0, 2**30 - 1) for _ in range(max_attempts)]
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     singer_executable = os.path.join(script_dir, "singer")
 
     resume_cmd = f"{singer_executable} -Ne {Ne} -m {m} -r {r} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin} -resume"
-    debug_cmd = f"{singer_executable} -Ne {Ne} -m {m} -r {r} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin} -debug"
 
     seeded_resume_cmd = resume_cmd + f" -seed {seed}"
     print(seeded_resume_cmd)
     process = subprocess.run(seeded_resume_cmd.split(), check=False)
-    while process.returncode != 0 and attempts < max_attempts:
-        print(f"Auto-debug iteration: {attempts}")
-        seeded_debug_cmd = debug_cmd + f" -seed {random_seeds[attempts]}"
-        print(seeded_debug_cmd)
-        process = subprocess.run(seeded_debug_cmd.split(), check=False)
-        attempts += 1
+    if process.returncode != 0:
+        print(f"Singer returned code {process.returncode}", file=sys.stderr)
+        if skip_failures:
+            print(f"Ignoring failure and returning with partial/no output", file=sys.stderr)
+        else:
+            print(f"Exiting with failure...", file=sys.stderr)
+            sys.exit(1)
+    return process.returncode
 
-    if attempts == max_attempts:
-        print("Auto-debug failed. Contact the author for help: yun_deng@berkeley.edu")
-        sys.exit(1)
-
-def run_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed):
-    attempts = 0
-    max_attempts = 100
+def run_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures = True):
     random.seed(seed)
-    random_seeds = [random.randint(0, 2**30 - 1) for _ in range(max_attempts)]   
    
     script_dir = os.path.dirname(os.path.realpath(__file__))
     singer_executable = os.path.join(script_dir, "singer") 
     
     start_cmd = f"{singer_executable} -Ne {Ne} -mut_map {mut_map_filename} -recomb_map {recomb_map_filename} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin}"    
-    debug_cmd = f"{singer_executable} -Ne {Ne} -mut_map {mut_map_filename} -recomb_map {recomb_map_filename} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin} -debug"    
 
     seeded_start_cmd = start_cmd + f" -seed {seed}"
     print(seeded_start_cmd)
     process = subprocess.run(seeded_start_cmd.split(), check=False)
-    while process.returncode != 0 and attempts < max_attempts:
-        print(f"Auto-debug iteration: {attempts}")
-        seeded_debug_cmd = debug_cmd + f" -seed {random_seeds[attempts]}"
-        print(seeded_debug_cmd)
-        process = subprocess.run(seeded_debug_cmd.split(), check=False)
-        attempts += 1
+    if process.returncode != 0:
+        print(f"Singer returned code {process.returncode}", file=sys.stderr)
+        if skip_failures:
+            print(f"Ignoring failure and returning with partial/no output", file=sys.stderr)
+        else:
+            print(f"Exiting with failure...", file=sys.stderr)
+            sys.exit(1)
+    return process.returncode
 
-    if attempts == max_attempts:
-        print("Auto-debug failed. Contact the author for help: yun_deng@berkeley.edu")
-        sys.exit(1)
-
-
-def resume_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed):
-    attempts = 0
-    max_attempts = 100
+def resume_map_singer(Ne, mut_map_filename, recomb_map_filename, start, end, vcf_prefix, output_prefix, num_iters, thin, polar, seed, skip_failures=True):
     random.seed(seed)
-    random_seeds = [random.randint(0, 2**30 - 1) for _ in range(max_attempts)]
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     singer_executable = os.path.join(script_dir, "singer")
 
     resume_cmd = f"{singer_executable} -Ne {Ne} -mut_map {mut_map_filename} -recomb_map {recomb_map_filename} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin} -resume" 
-    debug_cmd = f"{singer_executable} -Ne {Ne} -mut_map {mut_map_filename} -recomb_filename {recomb_map_filename} -input {vcf_prefix} -output {output_prefix} -start {start} -end {end} -polar {polar} -n {num_iters} -thin {thin} -debug"
       
     seeded_resume_cmd = resume_cmd + f" -seed {seed}"
     print(seeded_resume_cmd)
     process = subprocess.run(seeded_resume_cmd.split(), check=False)
-    while process.returncode != 0 and attempts < max_attempts:
-        print(f"Auto-debug iteration: {attempts}")
-        seeded_debug_cmd = debug_cmd + f" -seed {random_seeds[attempts]}"
-        print(seeded_debug_cmd)
-        process = subprocess.run(seeded_debug_cmd.split(), check=False)
-        attempts += 1
+    if process.returncode != 0:
+        print(f"Singer returned code {process.returncode}", file=sys.stderr)
+        if skip_failures:
+            print(f"Ignoring failure and returning with partial/no output", file=sys.stderr)
+        else:
+            print(f"Exiting with failure...", file=sys.stderr)
+            sys.exit(1)
+    return process.returncode
 
-    if attempts == max_attempts:
-        print("Auto-debug failed. Contact the author for help: yun_deng@berkeley.edu")
-        sys.exit(1)
-
-      
 def main():
     parser = argparse.ArgumentParser(description='Sample and infer ARG from genetic variation data')
 
