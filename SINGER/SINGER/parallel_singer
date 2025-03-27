@@ -58,8 +58,8 @@ def convert_long_ARG(vcf_prefix, output_prefix, num_iters, freq):
 def main():
     parser = argparse.ArgumentParser(description="Parallelize singer runs by cutting the chromosome")
     parser.add_argument('-Ne', type=float, required=False, help='Effective population size. Default: 1e4.')
-    parser.add_argument("-m", type=float, required=False, help="Mutation rate.")
     parser.add_argument("-mut_map", type=str, help="Filename for the mutation rate map.")
+    parser.add_argument("-m", type=float, required=False, help="Mutation rate.")
     parser.add_argument("-ratio", type=float, default=1, help="Recombination to mutation ratio. Default: 1.")
     parser.add_argument("-recomb_map", default=None, required=False, help="Filename for the recombination rate map.")
     parser.add_argument("-L", type=int, default=int(1e6), help="Block length. Default: 1e6.")
